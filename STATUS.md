@@ -1,5 +1,5 @@
 # FORGE OS — CURRENT STATUS
-**Updated:** 2026-08-10
+**Updated:** 2026-08-11
 **Owner:** mancier / munnchue-gif
 
 Any model: read this file first. It is the managed snapshot of where the project is.
@@ -13,11 +13,12 @@ Any model: read this file first. It is the managed snapshot of where the project
 | Canonical PC tree | `~/the-forge` |
 | PC snapshot copy | `~/forge-os-locked-pc` (rsync, no .venv/.git) |
 | NPU | OpenVINO sees `CPU`, `GPU.0`, `GPU.1`, `NPU` |
-| Bridge | `http://127.0.0.1:8787` (uvicorn) |
+| Bridge code | `forge/bridge/server.py` (contract endpoints present) |
+| Bridge boot gap | GitHub tree still has `ForgeKernel()` without `secret` — prefer `boot_forge()`; see forge-copilot `bridge-patch/BOOT_FIX.md` |
 | Baseline tests | **62 passed** (simple fabric suite) |
 | Internal ledger | **Simple** append log (no hash chain) |
 | Crypto boundary | **Gate + external adapters/sockets only** |
-| Base44 | Optional glass only — not the spine |
+| Base44 | Optional glass only — **not the spine** |
 
 ### Frozen decisions
 - Path: decoupled 2026-08-08
@@ -84,25 +85,35 @@ python -m pytest forge/fabric -q \
 |------|------|
 | `munnchue-gif/the-forge` (public) | Live fabric code on master |
 | `munnchue-gif/forge-os-core` (private) | **Status + lock docs + production path** |
-| `munnchue-gif/forge-copilot` (private) | Prompts so any model can see state |
+| `munnchue-gif/forge-copilot` (private) | Prompts + **handoff/** so any model can resume |
 | `forge-arena` / `sovereign-forge-v4` | Arena / V4 architecture — not this baseline |
-| `git-concoctinating` | Base44 board — archive/glass only |
+| `git-concoctinating` / `the-forge-ui` | Base44 board / UI history — glass only |
+| `fabric-ui` | Manifesto presentation — not core |
+
+### Handoff (forge-copilot)
+- `handoff/STATE.md` — living snapshot
+- `handoff/NEXT.md` — ordered steps
+- `handoff/RESUME_PROMPT.md` — paste into new model sessions
+- `bridge-patch/BOOT_FIX.md` — bridge secret fix
+- `versions/MODELS_AND_VERSIONS.md` — psychology wall
 
 ---
 
 ## Next bricks (ordered)
 
-1. Unify all `Finding(...)` construction to live fields (types.py).
-2. Commit `~/the-forge` fabric (incl. isolation/sequence) and push `the-forge` + mirror docs here.
-3. Optional: thin Gate egress hash for external adapters only.
-4. Do not pull hash-chain internal ledger unless product requires tamper-evidence.
+1. Fix bridge `_boot` to `boot_forge()` (or real ForgeKernel secret) and prove `/health`.
+2. Unify all `Finding(...)` construction to live fields (types.py).
+3. Commit PC fabric deltas and push `the-forge` if local is ahead of GitHub.
+4. Optional: thin Gate egress hash for external adapters only.
+5. Do not pull hash-chain internal ledger unless product requires tamper-evidence.
 
 ---
 
 ## How any model should work
 
 1. Read **this file** (`STATUS.md`).
-2. Read `LOCKED.md` / NPU notes if changing Gate or NPU.
-3. Prefer `~/the-forge` / this repo over Drive dumps and `ALLFORGE` copies.
-4. Do not mix Base44 entities into the fabric spine.
-5. After changes: re-run the 62-test baseline; update this STATUS date and numbers.
+2. Read forge-copilot `handoff/RESUME_PROMPT.md` if starting a new session.
+3. Read `LOCKED.md` / NPU notes if changing Gate or NPU.
+4. Prefer `~/the-forge` / these repos over Drive dumps.
+5. Do not mix Base44 entities into the fabric spine.
+6. After changes: re-run the 62-test baseline; update this STATUS date and numbers.
