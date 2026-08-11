@@ -46,15 +46,19 @@ Finding(
 Defined in `forge/fabric/types.py`.
 
 **Old callers still use** `section_id=`, `kind=`, `severity=int`.  
-That is the main source of remaining test failures. Fix = map to the live signature (or a small `make_finding()` helper). Do **not** reintroduce a second Finding type.
+Fix = map to the live signature. Do **not** reintroduce a second Finding type.
 
-### Severity mapping (recommended)
-- int `0` → `"info"` or `"0"`
-- int `1` → `"low"` or `"1"`
-- int `2` → `"medium"` or `"2"`
-- int `3` → `"critical"` or `"3"`
+---
 
-Pick one scheme and stick to it in STATUS updates.
+## Multi-model protocol
+
+| Location | Role |
+|----------|------|
+| `forge-copilot/protocol/` | PRE_PROMPT, MASTER_PROMPT, AI NODE COMMIT LOG template |
+| `forge-copilot/node-logs/` | Append-only session logs |
+| `forge-copilot/handoff/` | STATE / NEXT / RESUME |
+
+**Any model session:** STATUS (this file) → protocol absorb → AI NODE COMMIT LOG for every substantive reply → append node-logs when code changes.
 
 ---
 
@@ -75,45 +79,36 @@ python -m pytest forge/fabric -q \
 # expect: 62 passed
 ```
 
-**Design suite (deferred):** chained audit ledger, rich Finding/judge/conduit/bind tests. Re-enable only after Finding callers are unified and ledger policy is explicit.
-
 ---
 
 ## Repo map
 
 | Repo | Role |
 |------|------|
-| `munnchue-gif/the-forge` (public) | Live fabric code on master |
-| `munnchue-gif/forge-os-core` (private) | **Status + lock docs + production path** |
-| `munnchue-gif/forge-copilot` (private) | Prompts + **handoff/** so any model can resume |
-| `forge-arena` / `sovereign-forge-v4` | Arena / V4 architecture — not this baseline |
-| `git-concoctinating` / `the-forge-ui` | Base44 board / UI history — glass only |
+| `munnchue-gif/the-forge` (public) | Live fabric code |
+| `munnchue-gif/forge-os-core` (private) | Status + lock docs |
+| `munnchue-gif/forge-copilot` (private) | Protocol + handoff + node-logs |
+| `forge-arena` / `sovereign-forge-v4` | Post-build |
+| `git-concoctinating` / `the-forge-ui` | Base44 history — glass only |
 | `fabric-ui` | Manifesto presentation — not core |
-
-### Handoff (forge-copilot)
-- `handoff/STATE.md` — living snapshot
-- `handoff/NEXT.md` — ordered steps
-- `handoff/RESUME_PROMPT.md` — paste into new model sessions
-- `bridge-patch/BOOT_FIX.md` — bridge secret fix
-- `versions/MODELS_AND_VERSIONS.md` — psychology wall
 
 ---
 
 ## Next bricks (ordered)
 
-1. Fix bridge `_boot` to `boot_forge()` (or real ForgeKernel secret) and prove `/health`.
-2. Unify all `Finding(...)` construction to live fields (types.py).
-3. Commit PC fabric deltas and push `the-forge` if local is ahead of GitHub.
+1. Fix bridge `_boot` to `boot_forge()` and prove `/health`.
+2. Unify all `Finding(...)` construction to live fields.
+3. Commit PC fabric deltas to `the-forge` if local is ahead.
 4. Optional: thin Gate egress hash for external adapters only.
-5. Do not pull hash-chain internal ledger unless product requires tamper-evidence.
+5. Do not pull hash-chain internal ledger unless product requires it.
 
 ---
 
 ## How any model should work
 
-1. Read **this file** (`STATUS.md`).
-2. Read forge-copilot `handoff/RESUME_PROMPT.md` if starting a new session.
-3. Read `LOCKED.md` / NPU notes if changing Gate or NPU.
+1. Read **this file**.
+2. Absorb `forge-copilot/protocol/PRE_PROMPT.md` + `MASTER_PROMPT.md`.
+3. Use **AI NODE COMMIT LOG** for substantive outputs.
 4. Prefer `~/the-forge` / these repos over Drive dumps.
-5. Do not mix Base44 entities into the fabric spine.
-6. After changes: re-run the 62-test baseline; update this STATUS date and numbers.
+5. Do not mix Base44 into the fabric spine.
+6. After changes: 62-test baseline; append `node-logs/`; update this STATUS if numbers change.
